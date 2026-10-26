@@ -3,6 +3,7 @@
 
 # Allow tracking of this .gitignore file
 !.gitignore
+!README.md
 
 # Allow tracking of the SCRIPTS directory and its contents
 !SCRIPTS/
