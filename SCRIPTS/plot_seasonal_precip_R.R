@@ -2,11 +2,13 @@
 
 # 2x2 panel plot (DJF, MAM / JJA, SON) of Swiss-mean seasonal precipitation
 # for all RCP8.5 model chains, from the txt files written by
-# seasonal_precip_R.R. The multi-chain mean is added as a bold black line.
+# seasonal_precip_R.R. The multi-chain mean is added as a bold black line and
+# the observed Swiss mean (1981-2020) as a red line.
 
 RESDIR <- "/highres_nobackup/svenk/CH2025_check_transient/RESULTS"
 PLOTDIR <- "/highres_nobackup/svenk/CH2025_check_transient/PLOTS"
 OUTFILE <- file.path(PLOTDIR, "seasonal_pr_CH_rcp85.png")
+OBSFILE <- file.path(RESDIR, "seasonal_pr_CH_obs_1981-2020.txt")
 SEASONS <- c("DJF", "MAM", "JJA", "SON") # row-wise: UL, UR, LL, LR
 
 files <- Sys.glob(file.path(RESDIR, "seasonal_pr_CH_*_rcp85.txt"))
@@ -14,6 +16,8 @@ if (length(files) == 0L) stop("No seasonal result files in ", RESDIR, call. = FA
 chains <- toupper(sub("^seasonal_pr_CH_(.*)_rcp85\\.txt$", "\\1", basename(files)))
 data <- lapply(files, read.table, header = TRUE)
 names(data) <- chains
+
+obs <- read.table(OBSFILE, header = TRUE)
 
 years <- sort(unique(unlist(lapply(data, `[[`, "year"))))
 cols <- grDevices::hcl.colors(length(chains), "Dark 3")
@@ -30,12 +34,13 @@ for (s in SEASONS) {
   grid()
   for (i in seq_along(chains)) lines(years, mat[, i], col = cols[i], lwd = 1)
   lines(years, rowMeans(mat, na.rm = TRUE), col = "black", lwd = 3)
+  lines(obs$year, obs[[s]], col = "red", lwd = 2)
 }
 
 par(mar = c(0, 0, 0, 0))
 plot.new()
-legend("center", legend = c(chains, "MEAN"), col = c(cols, "black"),
-       lwd = c(rep(1.5, length(chains)), 3), ncol = 5, cex = 0.7, bty = "n")
+legend("center", legend = c(chains, "MEAN", "OBS (1981-2020)"),
+       col = c(cols, "black", "red"), lwd = c(rep(1.5, length(chains)), 3, 2), ncol = 5, cex = 0.7, bty = "n")
 mtext("Swiss mean precipitation, CH2025 transient (non-BTS-shifted)",
       outer = TRUE, side = 3, line = 0.5, cex = 1.2, font = 2)
 invisible(dev.off())
